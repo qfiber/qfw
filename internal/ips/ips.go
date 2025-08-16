@@ -11,11 +11,11 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/firewall"
-	"qfw/internal/geoip"
-	"qfw/internal/logger"
-	"qfw/internal/notify"
+	"qff/internal/config"
+	"qff/internal/firewall"
+	"qff/internal/geoip"
+	"qff/internal/logger"
+	"qff/internal/notify"
 )
 
 type IPSManager struct {

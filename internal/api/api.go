@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/firewall"
-	"qfw/internal/ips"
-	"qfw/internal/logger"
-	"qfw/internal/monitor"
+	"qff/internal/config"
+	"qff/internal/firewall"
+	"qff/internal/ips"
+	"qff/internal/logger"
+	"qff/internal/monitor"
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"

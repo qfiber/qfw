@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/logger"
+	"qff/internal/config"
+	"qff/internal/logger"
 )
 
 type FileSystemMonitor struct {

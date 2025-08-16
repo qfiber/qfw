@@ -12,8 +12,8 @@ import (
 	"syscall"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/logger"
+	"qff/internal/config"
+	"qff/internal/logger"
 )
 
 type ProcessMonitor struct {

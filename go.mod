@@ -1,4 +1,4 @@
-module qfw
+module qff
 
 go 1.23.0
 

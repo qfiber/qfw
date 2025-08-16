@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/logger"
+	"qff/internal/logger"
 )
 
 type KernelLogMonitor struct {
@@ -21,7 +21,7 @@ type KernelLogMonitor struct {
 
 // Regex patterns for parsing nftables kernel log messages
 var (
-	qfwLogPattern = regexp.MustCompile(`QFW-(\w+)-(\w+)(?:-(\d+))?: .*IN=(\w*) OUT=(\w*) MAC=([^ ]*) SRC=([^ ]*) DST=([^ ]*) .*PROTO=(\w+)(?:.*SPT=(\d+))?(?:.*DPT=(\d+))?`)
+	qffLogPattern = regexp.MustCompile(`QFF-(\w+)-(\w+)(?:-(\d+))?: .*IN=(\w*) OUT=(\w*) MAC=([^ ]*) SRC=([^ ]*) DST=([^ ]*) .*PROTO=(\w+)(?:.*SPT=(\d+))?(?:.*DPT=(\d+))?`)
 )
 
 func NewKernelLogMonitor() *KernelLogMonitor {
@@ -96,12 +96,12 @@ func (k *KernelLogMonitor) monitorKernelLog() {
 }
 
 func (k *KernelLogMonitor) parseAndLogFirewallEvent(line string) {
-	// Only process QFW-related kernel messages
-	if !strings.Contains(line, "QFW-") {
+	// Only process QFF-related kernel messages
+	if !strings.Contains(line, "QFF-") {
 		return
 	}
 
-	matches := qfwLogPattern.FindStringSubmatch(line)
+	matches := qffLogPattern.FindStringSubmatch(line)
 	if len(matches) < 10 {
 		return
 	}

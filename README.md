@@ -1,10 +1,10 @@
-# QFW - qFibre Firewall Manager
+# QFF - qFibre Firewall Manager
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Go Version](https://img.shields.io/badge/Go-1.19+-00ADD8?style=flat&logo=go)](https://golang.org/)
 [![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey)](https://www.linux.org/)
 
-A comprehensive, high-performance firewall and intrusion prevention system built in Go. QFW provides advanced threat detection, real-time blocking, and intelligent security automation for web servers, hosting providers, and enterprise environments.
+A comprehensive, high-performance firewall and intrusion prevention system built in Go. QFF provides advanced threat detection, real-time blocking, and intelligent security automation for web servers, hosting providers, and enterprise environments.
 
 ## 🚀 Features
 
@@ -53,22 +53,22 @@ A comprehensive, high-performance firewall and intrusion prevention system built
 
 ### Build from Source
 ```bash
-git clone https://github.com/qfiber/qfw.git
-cd qfw
+git clone https://github.com/qfiber/qff.git
+cd qff
 make build
 ```
 
 ### System Installation
 ```bash
 sudo make install
-sudo systemctl enable qfw
-sudo systemctl start qfw
+sudo systemctl enable qff
+sudo systemctl start qff
 ```
 
 ## ⚙️ Configuration
 
 ### Basic Configuration
-Create `/etc/qfw/qfw.conf`:
+Create `/etc/qff/qff.conf`:
 
 ```ini
 [firewall]
@@ -132,30 +132,30 @@ cache_expiration=24h
 ### Command Line Interface
 ```bash
 # Service Management
-qfw-cli enable                    # Enable and start service
-qfw-cli disable                   # Stop and disable service
-qfw-cli status                    # Show firewall status
-qfw-cli reload                    # Reload configuration
+qff-cli enable                    # Enable and start service
+qff-cli disable                   # Stop and disable service
+qff-cli status                    # Show firewall status
+qff-cli reload                    # Reload configuration
 
 # IP Management
-qfw-cli whitelist add 192.168.1.100
-qfw-cli blacklist add 10.0.0.50
-qfw-cli whitelist remove 192.168.1.100
+qff-cli whitelist add 192.168.1.100
+qff-cli blacklist add 10.0.0.50
+qff-cli whitelist remove 192.168.1.100
 
 # IPS Management
-qfw-cli ips status                # Show IPS statistics
-qfw-cli ips blocked               # List blocked IPs
-qfw-cli ips unblock 1.2.3.4      # Unblock specific IP
-qfw-cli ips whitelist-add 5.6.7.8 "Trusted partner"
+qff-cli ips status                # Show IPS statistics
+qff-cli ips blocked               # List blocked IPs
+qff-cli ips unblock 1.2.3.4      # Unblock specific IP
+qff-cli ips whitelist-add 5.6.7.8 "Trusted partner"
 
 # Enhanced GeoIP
-qfw-cli ips geoip-check 8.8.8.8 ssh    # Check country rules
-qfw-cli ips vpn-check 1.2.3.4          # Check VPN status
-qfw-cli ips service-rules               # Show service rules
+qff-cli ips geoip-check 8.8.8.8 ssh    # Check country rules
+qff-cli ips vpn-check 1.2.3.4          # Check VPN status
+qff-cli ips service-rules               # Show service rules
 
 # Monitoring
-qfw-cli metrics                   # System metrics
-qfw-cli logs 100                  # Show recent logs
+qff-cli metrics                   # System metrics
+qff-cli logs 100                  # Show recent logs
 ```
 
 ### REST API
@@ -200,11 +200,11 @@ make check          # All quality checks
 ## 📊 Monitoring & Metrics
 
 ### Prometheus Integration
-QFW exposes metrics at `http://localhost:8080/prometheus`:
-- `qfw_blocked_ips_total` - Total blocked IPs
-- `qfw_attacks_detected_total` - Attacks by type and service
-- `qfw_cpu_usage_percent` - System resource usage
-- `qfw_log_entries_total` - Log processing statistics
+QFF exposes metrics at `http://localhost:8080/prometheus`:
+- `qff_blocked_ips_total` - Total blocked IPs
+- `qff_attacks_detected_total` - Attacks by type and service
+- `qff_cpu_usage_percent` - System resource usage
+- `qff_log_entries_total` - Log processing statistics
 
 ### Performance Metrics
 - Real-time log processing (30-second intervals)
@@ -260,10 +260,10 @@ QFW exposes metrics at `http://localhost:8080/prometheus`:
 ## 📁 Project Structure
 
 ```
-qfw/
+qff/
 ├── cmd/
-│   ├── qfw/              # Main firewall daemon
-│   └── qfw-cli/          # Command line interface
+│   ├── qff/              # Main firewall daemon
+│   └── qff-cli/          # Command line interface
 ├── internal/
 │   ├── api/              # REST API server
 │   ├── config/           # Configuration management
@@ -292,7 +292,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 ### Reporting Issues
 Please use GitHub Issues to report bugs or request features. Include:
 - Operating system and version
-- QFW version
+- QFF version
 - Configuration details
 - Log excerpts (sanitized)
 
@@ -322,13 +322,13 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ## 📞 Support
 
-- **Documentation**: [Wiki](https://github.com/qfiber/qfw/wiki)
-- **Issues**: [GitHub Issues](https://github.com/qfiber/qfw/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/qfiber/qfw/discussions)
+- **Documentation**: [Wiki](https://github.com/qfiber/qff/wiki)
+- **Issues**: [GitHub Issues](https://github.com/qfiber/qff/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/qfiber/qff/discussions)
 
 ---
 
-**QFW** - Enterprise-grade security for the modern web. Built with Go, powered by intelligence.
+**QFF** - Enterprise-grade security for the modern web. Built with Go, powered by intelligence.
 =======
 Modern CSF replacement built with Go and nftables, featuring REST API, live metrics, and comprehensive security filtering.
 
@@ -350,24 +350,24 @@ Modern CSF replacement built with Go and nftables, featuring REST API, live metr
 make install
 
 # Enable and start service
-qfw-cli enable
+qff-cli enable
 
 # Check status
-qfw-cli status
+qff-cli status
 
 # View metrics
-qfw-cli metrics
+qff-cli metrics
 
 # Add IP to whitelist
-qfw-cli whitelist add 192.168.1.100
+qff-cli whitelist add 192.168.1.100
 
 # View logs
-qfw-cli logs 100
+qff-cli logs 100
 ```
 
 ## Configuration
 
-Edit `/etc/qfw/qfw.conf` with your settings. See example configuration for all options.
+Edit `/etc/qff/qff.conf` with your settings. See example configuration for all options.
 
 ## API Usage
 

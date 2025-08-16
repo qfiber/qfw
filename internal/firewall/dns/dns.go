@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/logger"
+	"qff/internal/logger"
 
 	"github.com/google/nftables"
 )

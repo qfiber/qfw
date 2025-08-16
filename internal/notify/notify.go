@@ -21,8 +21,8 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/logger"
+	"qff/internal/config"
+	"qff/internal/logger"
 )
 
 const (
@@ -305,7 +305,7 @@ func getDefaultConfig() *Config {
 
 func getDefaultTemplateConfig() *TemplateConfig {
 	return &TemplateConfig{
-		EmailSubject:    "QFW Alert: {{.Alert.Title}}",
+		EmailSubject:    "QFF Alert: {{.Alert.Title}}",
 		EmailBody:       defaultEmailTemplate,
 		WebhookPayload:  defaultWebhookTemplate,
 		SlackPayload:    defaultSlackTemplate,
@@ -342,7 +342,7 @@ Tags: {{join .Alert.Tags ", "}}
 {{end}}
 
 --
-QFW Notification System
+QFF Notification System
 `
 
 const defaultWebhookTemplate = `{
@@ -364,7 +364,7 @@ const defaultWebhookTemplate = `{
 }`
 
 const defaultSlackTemplate = `{
-  "text": "QFW Alert: {{.Alert.Title}}",
+  "text": "QFF Alert: {{.Alert.Title}}",
   "attachments": [
     {
       "color": "{{if eq .Alert.Level "critical"}}danger{{else if eq .Alert.Level "error"}}warning{{else}}good{{end}}",
@@ -590,7 +590,7 @@ func (n *Notifier) sendWebhookRequest(payload []byte, webhook *WebhookConfig) er
 
 	// Set headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "QFW-Notifier/1.0")
+	req.Header.Set("User-Agent", "QFF-Notifier/1.0")
 
 	// Add custom headers
 	for key, value := range webhook.Headers {
@@ -602,7 +602,7 @@ func (n *Notifier) sendWebhookRequest(payload []byte, webhook *WebhookConfig) er
 		signature := n.generateSignature(payload, webhook.Secret)
 		headerName := webhook.SignatureHeader
 		if headerName == "" {
-			headerName = "X-QFW-Signature"
+			headerName = "X-QFF-Signature"
 		}
 		req.Header.Set(headerName, signature)
 	}
@@ -646,7 +646,7 @@ func (n *Notifier) renderEmailTemplate(alert *Alert) (string, string, error) {
 	var subjectBuf bytes.Buffer
 	subjectTemplate := n.config.Templates.EmailSubject
 	if subjectTemplate == "" {
-		subjectTemplate = "QFW Alert: {{.Alert.Title}}"
+		subjectTemplate = "QFF Alert: {{.Alert.Title}}"
 	}
 
 	tmpl, err := template.New("subject").Funcs(funcMap).Parse(subjectTemplate)
@@ -688,10 +688,10 @@ func (n *Notifier) buildTemplateData(alert *Alert) map[string]interface{} {
 
 	return map[string]interface{}{
 		"Alert":       alert,
-		"Service":     "QFW",
+		"Service":     "QFF",
 		"Version":     "1.0.0",
 		"Hostname":    hostname,
-		"Environment": os.Getenv("QFW_ENV"),
+		"Environment": os.Getenv("QFF_ENV"),
 		"Timestamp":   time.Now(),
 	}
 }
@@ -825,7 +825,7 @@ func (rl *RateLimiter) Allow(key string) bool {
 
 // Utility functions
 func generateAlertID() string {
-	return fmt.Sprintf("qfw_%d", time.Now().UnixNano())
+	return fmt.Sprintf("qff_%d", time.Now().UnixNano())
 }
 
 func getLevelPriority(level string) int {
@@ -916,7 +916,7 @@ func (n *Notifier) TestNotification() error {
 		"timestamp": time.Now(),
 	}
 
-	return n.SendInfo("Test Notification", "This is a test notification from QFW", "system", data)
+	return n.SendInfo("Test Notification", "This is a test notification from QFF", "system", data)
 }
 
 // UpdateConfig updates the notification configuration

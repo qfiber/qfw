@@ -38,7 +38,7 @@ func New() *Logger {
 	promLogger := &PrometheusLogger{
 		logCounter: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Name: "qfw_log_entries_total",
+				Name: "qff_log_entries_total",
 				Help: "Total number of log entries by level",
 			},
 			[]string{"level", "component"},

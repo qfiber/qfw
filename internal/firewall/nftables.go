@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/logger"
+	"qff/internal/config"
+	"qff/internal/logger"
 
 	"github.com/google/nftables"
 	"github.com/google/nftables/expr"
@@ -107,7 +107,7 @@ func NewBOGONManager(cfg *config.SecurityConfig, conn *nftables.Conn, table *nft
 func NewNFTManager(cfg *config.Config) *NFTManager {
 	conn := &nftables.Conn{}
 	table := &nftables.Table{
-		Name:   "qfw",
+		Name:   "qff",
 		Family: nftables.TableFamilyINet,
 	}
 
@@ -223,13 +223,13 @@ func (n *NFTManager) AddPortRule(port int, protocol string, direction string, ac
 	switch strings.ToLower(action) {
 	case "accept", "allow":
 		verdict = expr.VerdictAccept
-		logPrefix = fmt.Sprintf("QFW-ACCEPT-%s-%d: ", strings.ToUpper(direction), port)
+		logPrefix = fmt.Sprintf("QFF-ACCEPT-%s-%d: ", strings.ToUpper(direction), port)
 	case "drop", "deny", "block":
 		verdict = expr.VerdictDrop
-		logPrefix = fmt.Sprintf("QFW-DROP-%s-%d: ", strings.ToUpper(direction), port)
+		logPrefix = fmt.Sprintf("QFF-DROP-%s-%d: ", strings.ToUpper(direction), port)
 	case "reject":
 		verdict = expr.VerdictReturn
-		logPrefix = fmt.Sprintf("QFW-REJECT-%s-%d: ", strings.ToUpper(direction), port)
+		logPrefix = fmt.Sprintf("QFF-REJECT-%s-%d: ", strings.ToUpper(direction), port)
 	default:
 		return fmt.Errorf("unsupported action: %s", action)
 	}
@@ -526,7 +526,7 @@ func (n *NFTManager) setupRules() error {
 		Exprs: []expr.Any{
 			&expr.Payload{DestRegister: 1, Base: expr.PayloadBaseNetworkHeader, Offset: 12, Len: 4},
 			&expr.Lookup{SourceRegister: 1, SetName: "whitelist_ips"},
-			&expr.Log{Data: []byte("QFW-ACCEPT-WHITELIST: ")},
+			&expr.Log{Data: []byte("QFF-ACCEPT-WHITELIST: ")},
 			&expr.Verdict{Kind: expr.VerdictAccept},
 		},
 	})
@@ -538,7 +538,7 @@ func (n *NFTManager) setupRules() error {
 		Exprs: []expr.Any{
 			&expr.Payload{DestRegister: 1, Base: expr.PayloadBaseNetworkHeader, Offset: 12, Len: 4},
 			&expr.Lookup{SourceRegister: 1, SetName: "blacklist_ips"},
-			&expr.Log{Data: []byte("QFW-DROP-BLACKLIST: ")},
+			&expr.Log{Data: []byte("QFF-DROP-BLACKLIST: ")},
 			&expr.Verdict{Kind: expr.VerdictDrop},
 		},
 	})
@@ -564,7 +564,7 @@ func (n *NFTManager) setupRules() error {
 			Table: n.table,
 			Chain: inputChain,
 			Exprs: []expr.Any{
-				&expr.Log{Data: []byte("QFW-DROP-INPUT: ")},
+				&expr.Log{Data: []byte("QFF-DROP-INPUT: ")},
 				&expr.Verdict{Kind: expr.VerdictDrop},
 			},
 		})
@@ -575,7 +575,7 @@ func (n *NFTManager) setupRules() error {
 		Table: n.table,
 		Chain: outputChain,
 		Exprs: []expr.Any{
-			&expr.Log{Data: []byte("QFW-DROP-OUTPUT: ")},
+			&expr.Log{Data: []byte("QFF-DROP-OUTPUT: ")},
 			&expr.Verdict{Kind: expr.VerdictDrop},
 		},
 	})
@@ -597,7 +597,7 @@ func (n *NFTManager) setupConfigPortRules() error {
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{6}}, // TCP protocol
 				&expr.Payload{DestRegister: 1, Base: expr.PayloadBaseTransportHeader, Offset: 2, Len: 2},
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{byte(port >> 8), byte(port)}},
-				&expr.Log{Data: []byte(fmt.Sprintf("QFW-ACCEPT-INPUT-%d: ", port))},
+				&expr.Log{Data: []byte(fmt.Sprintf("QFF-ACCEPT-INPUT-%d: ", port))},
 				&expr.Verdict{Kind: expr.VerdictAccept},
 			},
 		})
@@ -614,7 +614,7 @@ func (n *NFTManager) setupConfigPortRules() error {
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{17}}, // UDP protocol
 				&expr.Payload{DestRegister: 1, Base: expr.PayloadBaseTransportHeader, Offset: 2, Len: 2},
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{byte(port >> 8), byte(port)}},
-				&expr.Log{Data: []byte(fmt.Sprintf("QFW-ACCEPT-INPUT-%d: ", port))},
+				&expr.Log{Data: []byte(fmt.Sprintf("QFF-ACCEPT-INPUT-%d: ", port))},
 				&expr.Verdict{Kind: expr.VerdictAccept},
 			},
 		})
@@ -631,7 +631,7 @@ func (n *NFTManager) setupConfigPortRules() error {
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{6}}, // TCP protocol
 				&expr.Payload{DestRegister: 1, Base: expr.PayloadBaseTransportHeader, Offset: 2, Len: 2},
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{byte(port >> 8), byte(port)}},
-				&expr.Log{Data: []byte(fmt.Sprintf("QFW-ACCEPT-OUTPUT-%d: ", port))},
+				&expr.Log{Data: []byte(fmt.Sprintf("QFF-ACCEPT-OUTPUT-%d: ", port))},
 				&expr.Verdict{Kind: expr.VerdictAccept},
 			},
 		})
@@ -648,7 +648,7 @@ func (n *NFTManager) setupConfigPortRules() error {
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{17}}, // UDP protocol
 				&expr.Payload{DestRegister: 1, Base: expr.PayloadBaseTransportHeader, Offset: 2, Len: 2},
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{byte(port >> 8), byte(port)}},
-				&expr.Log{Data: []byte(fmt.Sprintf("QFW-ACCEPT-OUTPUT-%d: ", port))},
+				&expr.Log{Data: []byte(fmt.Sprintf("QFF-ACCEPT-OUTPUT-%d: ", port))},
 				&expr.Verdict{Kind: expr.VerdictAccept},
 			},
 		})
@@ -665,7 +665,7 @@ func (n *NFTManager) setupConfigPortRules() error {
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{6}}, // TCP protocol
 				&expr.Payload{DestRegister: 1, Base: expr.PayloadBaseTransportHeader, Offset: 2, Len: 2},
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{byte(port >> 8), byte(port)}},
-				&expr.Log{Data: []byte(fmt.Sprintf("QFW-DROP-INPUT-%d: ", port))},
+				&expr.Log{Data: []byte(fmt.Sprintf("QFF-DROP-INPUT-%d: ", port))},
 				&expr.Verdict{Kind: expr.VerdictDrop},
 			},
 		})
@@ -682,7 +682,7 @@ func (n *NFTManager) setupConfigPortRules() error {
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{17}}, // UDP protocol
 				&expr.Payload{DestRegister: 1, Base: expr.PayloadBaseTransportHeader, Offset: 2, Len: 2},
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{byte(port >> 8), byte(port)}},
-				&expr.Log{Data: []byte(fmt.Sprintf("QFW-DROP-INPUT-%d: ", port))},
+				&expr.Log{Data: []byte(fmt.Sprintf("QFF-DROP-INPUT-%d: ", port))},
 				&expr.Verdict{Kind: expr.VerdictDrop},
 			},
 		})

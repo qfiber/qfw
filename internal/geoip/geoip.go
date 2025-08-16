@@ -8,9 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"qff/internal/config"
+	"qff/internal/logger"
+
 	"github.com/oschwald/geoip2-golang"
-	"qfw/internal/config"
-	"qfw/internal/logger"
 )
 
 type GeoIPManager struct {

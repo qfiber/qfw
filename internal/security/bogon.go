@@ -17,8 +17,8 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/logger"
+	"qff/internal/config"
+	"qff/internal/logger"
 
 	"github.com/google/nftables"
 )
@@ -37,7 +37,7 @@ const (
 	BOGONWhitelistSet = "bogon_whitelist"
 
 	// Cache settings
-	DefaultCacheDir = "/var/lib/qfw/bogon"
+	DefaultCacheDir = "/var/lib/qff/bogon"
 	CacheFileFormat = "bogon_%s_%s.cache"
 
 	// Well-known BOGON list URLs
@@ -822,7 +822,7 @@ func (b *BOGONManager) downloadBogonList(source BOGONSource) ([]net.IPNet, error
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("User-Agent", "QFW-BOGON-Manager/1.0")
+	req.Header.Set("User-Agent", "QFF-BOGON-Manager/1.0")
 
 	resp, err := b.client.Do(req)
 	if err != nil {

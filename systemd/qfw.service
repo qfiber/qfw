@@ -5,7 +5,7 @@ After=network-online.target
 [Service]
 Type=simple
 User=root
-ExecStart=/usr/local/bin/qff -config /etc/qfw/qfw.conf
+ExecStart=/usr/local/bin/qff -config /etc/qff/qff.conf
 SyslogIdentifier=qFiber Firewall
 StandardOutput=journal
 StandardError=journal

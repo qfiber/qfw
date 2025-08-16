@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/logger"
+	"qff/internal/logger"
 )
 
 const (
@@ -295,7 +295,7 @@ func (m *MaxMindDownloader) downloadWithRetry(ctx context.Context, edition strin
 	}
 
 	// Add headers
-	req.Header.Set("User-Agent", "QFW-GeoIP-Downloader/1.0")
+	req.Header.Set("User-Agent", "QFF-GeoIP-Downloader/1.0")
 	req.Header.Set("Accept", "application/octet-stream")
 
 	// Make request
@@ -560,7 +560,7 @@ func (m *MaxMindDownloader) generateDBPath(edition string) string {
 	}
 
 	// Use default path
-	return filepath.Join("/var/lib/qfw/geoip", edition+MmdbSuffix)
+	return filepath.Join("/var/lib/qff/geoip", edition+MmdbSuffix)
 }
 
 func (m *MaxMindDownloader) validateEdition(edition string) error {

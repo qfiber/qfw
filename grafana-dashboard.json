@@ -1,8 +1,8 @@
 {
   "dashboard": {
     "id": null,
-    "title": "QFW - qFibre Firewall Manager",
-    "tags": ["qfw", "firewall", "security", "ips"],
+    "title": "QFF - qFibre Firewall Manager",
+    "tags": ["qff", "firewall", "security", "ips"],
     "style": "dark",
     "timezone": "browser",
     "refresh": "5s",
@@ -16,26 +16,26 @@
     "panels": [
       {
         "id": 1,
-        "title": "QFW Overview",
+        "title": "QFF Overview",
         "type": "stat",
         "targets": [
           {
-            "expr": "qfw_blocked_count",
+            "expr": "qff_blocked_count",
             "legendFormat": "Blocked IPs",
             "refId": "A"
           },
           {
-            "expr": "qfw_whitelisted_count",
+            "expr": "qff_whitelisted_count",
             "legendFormat": "Whitelisted IPs",
             "refId": "B"
           },
           {
-            "expr": "qfw_attack_counters",
+            "expr": "qff_attack_counters",
             "legendFormat": "Active Threats",
             "refId": "C"
           },
           {
-            "expr": "qfw_patterns_loaded",
+            "expr": "qff_patterns_loaded",
             "legendFormat": "Detection Patterns",
             "refId": "D"
           }
@@ -93,12 +93,12 @@
         "type": "timeseries",
         "targets": [
           {
-            "expr": "rate(qfw_log_entries_total{level=\"ERROR\"}[5m])",
+            "expr": "rate(qff_log_entries_total{level=\"ERROR\"}[5m])",
             "legendFormat": "Attack Detection Rate",
             "refId": "A"
           },
           {
-            "expr": "rate(qfw_log_entries_total{component=\"ips\"}[5m])",
+            "expr": "rate(qff_log_entries_total{component=\"ips\"}[5m])",
             "legendFormat": "IPS Activity",
             "refId": "B"
           }
@@ -176,17 +176,17 @@
         "type": "timeseries",
         "targets": [
           {
-            "expr": "qfw_cpu_usage_percent",
+            "expr": "qff_cpu_usage_percent",
             "legendFormat": "CPU Usage %",
             "refId": "A"
           },
           {
-            "expr": "qfw_memory_usage_percent",
+            "expr": "qff_memory_usage_percent",
             "legendFormat": "Memory Usage %",
             "refId": "B"
           },
           {
-            "expr": "qfw_disk_usage_percent",
+            "expr": "qff_disk_usage_percent",
             "legendFormat": "Disk Usage %",
             "refId": "C"
           }
@@ -270,7 +270,7 @@
         "type": "piechart",
         "targets": [
           {
-            "expr": "qfw_blocked_by_service",
+            "expr": "qff_blocked_by_service",
             "legendFormat": "{{service}}",
             "refId": "A"
           }
@@ -318,7 +318,7 @@
         "type": "piechart",
         "targets": [
           {
-            "expr": "qfw_geoip_blocks_by_country",
+            "expr": "qff_geoip_blocks_by_country",
             "legendFormat": "{{country}}",
             "refId": "A"
           }
@@ -366,17 +366,17 @@
         "type": "stat",
         "targets": [
           {
-            "expr": "qfw_vpn_detections_total",
+            "expr": "qff_vpn_detections_total",
             "legendFormat": "VPN Detections",
             "refId": "A"
           },
           {
-            "expr": "qfw_proxy_detections_total",
+            "expr": "qff_proxy_detections_total",
             "legendFormat": "Proxy Detections",
             "refId": "B"
           },
           {
-            "expr": "qfw_vpn_cache_size",
+            "expr": "qff_vpn_cache_size",
             "legendFormat": "Cache Size",
             "refId": "C"
           }
@@ -431,12 +431,12 @@
         "type": "timeseries",
         "targets": [
           {
-            "expr": "rate(qfw_port_scan_detections_total[5m])",
+            "expr": "rate(qff_port_scan_detections_total[5m])",
             "legendFormat": "Port Scans Detected",
             "refId": "A"
           },
           {
-            "expr": "qfw_active_scanners",
+            "expr": "qff_active_scanners",
             "legendFormat": "Active Scanners",
             "refId": "B"
           }
@@ -513,12 +513,12 @@
         "type": "timeseries",
         "targets": [
           {
-            "expr": "qfw_file_changes_total",
+            "expr": "qff_file_changes_total",
             "legendFormat": "File Changes",
             "refId": "A"
           },
           {
-            "expr": "qfw_monitored_files",
+            "expr": "qff_monitored_files",
             "legendFormat": "Monitored Files",
             "refId": "B"
           }
@@ -595,7 +595,7 @@
         "type": "table",
         "targets": [
           {
-            "expr": "qfw_suspicious_processes",
+            "expr": "qff_suspicious_processes",
             "legendFormat": "Suspicious Processes",
             "refId": "A"
           }
@@ -641,17 +641,17 @@
         "type": "stat",
         "targets": [
           {
-            "expr": "qfw_blocklist_total_ips",
+            "expr": "qff_blocklist_total_ips",
             "legendFormat": "Blocklist IPs",
             "refId": "A"
           },
           {
-            "expr": "qfw_blocklist_count",
+            "expr": "qff_blocklist_count",
             "legendFormat": "Active Lists",
             "refId": "B"
           },
           {
-            "expr": "qfw_blocklist_last_update",
+            "expr": "qff_blocklist_last_update",
             "legendFormat": "Last Update",
             "refId": "C"
           }
@@ -706,7 +706,7 @@
         "type": "timeseries",
         "targets": [
           {
-            "expr": "rate(qfw_log_entries_total[5m])",
+            "expr": "rate(qff_log_entries_total[5m])",
             "legendFormat": "{{level}} - {{component}}",
             "refId": "A"
           }

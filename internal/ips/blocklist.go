@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/logger"
+	"qff/internal/config"
+	"qff/internal/logger"
 )
 
 const (
@@ -172,7 +172,7 @@ func (b *ExternalBlocklistManager) updateBlocklist(ctx context.Context, name str
 		return
 	}
 
-	req.Header.Set("User-Agent", "QFW-IPS/1.0")
+	req.Header.Set("User-Agent", "QFF-IPS/1.0")
 	req.Header.Set("Accept", "text/plain")
 
 	resp, err := b.client.Do(req)

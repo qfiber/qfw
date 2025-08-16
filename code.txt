@@ -1,4 +1,4 @@
-// cmd/qfw-cli/main.go
+// cmd/qff-cli/main.go
 package main
 
 import (
@@ -18,7 +18,7 @@ import (
 const (
 	Version         = "1.0.0"
 	DefaultAPIBase  = "http://localhost:8080"
-	ServiceName     = "qfw"
+	ServiceName     = "qff"
 	DefaultTimeout  = 30 * time.Second
 	DefaultLogLines = 50
 )
@@ -36,7 +36,7 @@ type CLIConfig struct {
 	Verbose bool
 }
 
-// APIClient handles HTTP communication with the QFW API
+// APIClient handles HTTP communication with the QFF API
 type APIClient struct {
 	baseURL string
 	client  *http.Client
@@ -52,9 +52,9 @@ type Command struct {
 
 func main() {
 	config := &CLIConfig{
-		APIBase: getEnvOrDefault("QFW_API_BASE", DefaultAPIBase),
+		APIBase: getEnvOrDefault("QFF_API_BASE", DefaultAPIBase),
 		Timeout: DefaultTimeout,
-		Verbose: os.Getenv("QFW_VERBOSE") == "1",
+		Verbose: os.Getenv("QFF_VERBOSE") == "1",
 	}
 
 	cli := &CLI{
@@ -154,9 +154,9 @@ func (cli *CLI) getCommands() map[string]*Command {
 }
 
 func (cli *CLI) showUsage() error {
-	fmt.Println("QFW CLI - qFibre Firewall Manager")
+	fmt.Println("QFF CLI - qFibre Firewall Manager")
 	fmt.Printf("Version: %s\n\n", Version)
-	fmt.Println("Usage: qfw-cli <command> [options]")
+	fmt.Println("Usage: qff-cli <command> [options]")
 	fmt.Println("\nCommands:")
 
 	commands := cli.getCommands()
@@ -165,13 +165,13 @@ func (cli *CLI) showUsage() error {
 	}
 
 	fmt.Println("\nEnvironment Variables:")
-	fmt.Println("  QFW_API_BASE    API base URL (default: http://localhost:8080)")
-	fmt.Println("  QFW_VERBOSE     Enable verbose output (set to '1')")
+	fmt.Println("  QFF_API_BASE    API base URL (default: http://localhost:8080)")
+	fmt.Println("  QFF_VERBOSE     Enable verbose output (set to '1')")
 	fmt.Println("\nExamples:")
-	fmt.Println("  qfw-cli status")
-	fmt.Println("  qfw-cli ips status")
-	fmt.Println("  qfw-cli whitelist add 192.168.1.100")
-	fmt.Println("  qfw-cli ports add 8080 tcp in allow")
+	fmt.Println("  qff-cli status")
+	fmt.Println("  qff-cli ips status")
+	fmt.Println("  qff-cli whitelist add 192.168.1.100")
+	fmt.Println("  qff-cli ports add 8080 tcp in allow")
 
 	return nil
 }
@@ -186,7 +186,7 @@ func (ac *APIClient) makeRequest(ctx context.Context, method, endpoint string, b
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", fmt.Sprintf("qfw-cli/%s", Version))
+	req.Header.Set("User-Agent", fmt.Sprintf("qff-cli/%s", Version))
 
 	resp, err := ac.client.Do(req)
 	if err != nil {
@@ -298,7 +298,7 @@ func (cli *CLI) handleEnable(args []string) error {
 		return fmt.Errorf("enabling service: %w", err)
 	}
 
-	fmt.Println("QFW service enabled and started")
+	fmt.Println("QFF service enabled and started")
 	return nil
 }
 
@@ -311,12 +311,12 @@ func (cli *CLI) handleDisable(args []string) error {
 		return fmt.Errorf("disabling service: %w", err)
 	}
 
-	fmt.Println("QFW service disabled and stopped")
+	fmt.Println("QFF service disabled and stopped")
 	return nil
 }
 
 func (cli *CLI) handleVersion(args []string) error {
-	fmt.Printf("qfw-cli v%s\n", Version)
+	fmt.Printf("qff-cli v%s\n", Version)
 	return nil
 }
 
@@ -330,7 +330,7 @@ func (cli *CLI) handleBlacklist(args []string) error {
 
 func (cli *CLI) handleIPList(listType string, args []string) error {
 	if len(args) < 2 {
-		return fmt.Errorf("usage: qfw-cli %s <add|remove|list> <ip>", listType)
+		return fmt.Errorf("usage: qff-cli %s <add|remove|list> <ip>", listType)
 	}
 
 	action := args[0]
@@ -340,12 +340,12 @@ func (cli *CLI) handleIPList(listType string, args []string) error {
 		return cli.listIPs(listType)
 	case "add":
 		if len(args) < 2 {
-			return fmt.Errorf("usage: qfw-cli %s add <ip>", listType)
+			return fmt.Errorf("usage: qff-cli %s add <ip>", listType)
 		}
 		return cli.addIPToList(listType, args[1])
 	case "remove":
 		if len(args) < 2 {
-			return fmt.Errorf("usage: qfw-cli %s remove <ip>", listType)
+			return fmt.Errorf("usage: qff-cli %s remove <ip>", listType)
 		}
 		return cli.removeIPFromList(listType, args[1])
 	default:
@@ -506,7 +506,7 @@ func (cli *CLI) handleIPSWhitelist(args []string) error {
 
 func (cli *CLI) handleIPSUnblock(args []string) error {
 	if len(args) == 0 {
-		return fmt.Errorf("usage: qfw-cli ips unblock <ip>")
+		return fmt.Errorf("usage: qff-cli ips unblock <ip>")
 	}
 
 	ip := args[0]
@@ -529,7 +529,7 @@ func (cli *CLI) handleIPSUnblock(args []string) error {
 
 func (cli *CLI) handleIPSWhitelistAdd(args []string) error {
 	if len(args) == 0 {
-		return fmt.Errorf("usage: qfw-cli ips whitelist-add <ip> [reason]")
+		return fmt.Errorf("usage: qff-cli ips whitelist-add <ip> [reason]")
 	}
 
 	ip := args[0]
@@ -559,7 +559,7 @@ func (cli *CLI) handleIPSWhitelistAdd(args []string) error {
 
 func (cli *CLI) handleIPSWhitelistRemove(args []string) error {
 	if len(args) == 0 {
-		return fmt.Errorf("usage: qfw-cli ips whitelist-remove <ip>")
+		return fmt.Errorf("usage: qff-cli ips whitelist-remove <ip>")
 	}
 
 	ip := args[0]
@@ -582,7 +582,7 @@ func (cli *CLI) handleIPSWhitelistRemove(args []string) error {
 
 func (cli *CLI) handleGeoIPCheck(args []string) error {
 	if len(args) == 0 {
-		return fmt.Errorf("usage: qfw-cli ips geoip-check <ip> [service]")
+		return fmt.Errorf("usage: qff-cli ips geoip-check <ip> [service]")
 	}
 
 	ip := args[0]
@@ -618,7 +618,7 @@ func (cli *CLI) handleGeoIPCheck(args []string) error {
 
 func (cli *CLI) handleVPNCheck(args []string) error {
 	if len(args) == 0 {
-		return fmt.Errorf("usage: qfw-cli ips vpn-check <ip>")
+		return fmt.Errorf("usage: qff-cli ips vpn-check <ip>")
 	}
 
 	ip := args[0]
@@ -691,10 +691,10 @@ func (cli *CLI) showPortsUsage() error {
 	fmt.Println("  ports add <port> <tcp|udp> <in|out> [action]  Add port rule")
 	fmt.Println("  ports remove <port> <tcp|udp> <in|out>        Remove port rule")
 	fmt.Println("\nExamples:")
-	fmt.Println("  qfw-cli ports add 8080 tcp in allow")
-	fmt.Println("  qfw-cli ports add 53 udp out allow")
-	fmt.Println("  qfw-cli ports add 23 tcp in deny")
-	fmt.Println("  qfw-cli ports remove 8080 tcp in")
+	fmt.Println("  qff-cli ports add 8080 tcp in allow")
+	fmt.Println("  qff-cli ports add 53 udp out allow")
+	fmt.Println("  qff-cli ports add 23 tcp in deny")
+	fmt.Println("  qff-cli ports remove 8080 tcp in")
 	return nil
 }
 
@@ -718,7 +718,7 @@ func (cli *CLI) handlePortsList(args []string) error {
 
 func (cli *CLI) handlePortsAdd(args []string) error {
 	if len(args) < 3 {
-		return fmt.Errorf("usage: qfw-cli ports add <port> <tcp|udp> <in|out> [action]")
+		return fmt.Errorf("usage: qff-cli ports add <port> <tcp|udp> <in|out> [action]")
 	}
 
 	port := args[0]
@@ -751,7 +751,7 @@ func (cli *CLI) handlePortsAdd(args []string) error {
 
 func (cli *CLI) handlePortsRemove(args []string) error {
 	if len(args) < 3 {
-		return fmt.Errorf("usage: qfw-cli ports remove <port> <tcp|udp> <in|out>")
+		return fmt.Errorf("usage: qff-cli ports remove <port> <tcp|udp> <in|out>")
 	}
 
 	port := args[0]
@@ -920,7 +920,7 @@ func (cli *CLI) printKeyValue(data map[string]interface{}, indent string) {
 		}
 	}
 }
-// cmd/qfw/main.go
+// cmd/qff/main.go
 package main
 
 import (
@@ -935,19 +935,19 @@ import (
 	"syscall"
 	"time"
 
-	"qfw/internal/api"
-	"qfw/internal/config"
-	"qfw/internal/firewall"
-	"qfw/internal/geoip"
-	"qfw/internal/ips"
-	"qfw/internal/logger"
-	"qfw/internal/monitor"
-	"qfw/internal/notify"
+	"qff/internal/api"
+	"qff/internal/config"
+	"qff/internal/firewall"
+	"qff/internal/geoip"
+	"qff/internal/ips"
+	"qff/internal/logger"
+	"qff/internal/monitor"
+	"qff/internal/notify"
 )
 
 const (
 	Version                 = "1.0.0"
-	DefaultConfigPath       = "/etc/qfw/qfw.conf"
+	DefaultConfigPath       = "/etc/qff/qff.conf"
 	DefaultAPIPort          = ":8080"
 	ShutdownTimeout         = 30 * time.Second
 	ConnectivityTestTimeout = 3 * time.Second
@@ -978,7 +978,7 @@ func main() {
 	flags := parseFlags()
 
 	if flags.version {
-		fmt.Printf("QFW - qFibre Firewall Manager v%s\n", Version)
+		fmt.Printf("QFF - qFibre Firewall Manager v%s\n", Version)
 		os.Exit(0)
 	}
 
@@ -1011,14 +1011,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger.Info("main", "QFW started successfully", "version", Version, "pid", os.Getpid())
+	logger.Info("main", "QFF started successfully", "version", Version, "pid", os.Getpid())
 
 	// Wait for shutdown signal
 	app.waitForShutdown()
 
 	// Graceful shutdown
 	app.shutdown()
-	logger.Info("main", "QFW shutdown completed")
+	logger.Info("main", "QFF shutdown completed")
 }
 
 type flags struct {
@@ -1066,7 +1066,7 @@ func (app *App) initialize(flags *flags) error {
 func preFlightChecks() error {
 	// Check system requirements
 	if runtime.GOOS != "linux" {
-		return fmt.Errorf("QFW requires Linux operating system")
+		return fmt.Errorf("QFF requires Linux operating system")
 	}
 
 	// Check nftables availability
@@ -1076,7 +1076,7 @@ func preFlightChecks() error {
 
 	// Check required permissions
 	if os.Geteuid() != 0 {
-		return fmt.Errorf("QFW requires root privileges")
+		return fmt.Errorf("QFF requires root privileges")
 	}
 
 	return nil
@@ -1348,11 +1348,11 @@ import (
 	"strings"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/firewall"
-	"qfw/internal/ips"
-	"qfw/internal/logger"
-	"qfw/internal/monitor"
+	"qff/internal/config"
+	"qff/internal/firewall"
+	"qff/internal/ips"
+	"qff/internal/logger"
+	"qff/internal/monitor"
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -2501,7 +2501,7 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/logger"
+	"qff/internal/logger"
 
 	"github.com/google/nftables"
 )
@@ -3026,8 +3026,8 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/logger"
+	"qff/internal/config"
+	"qff/internal/logger"
 
 	"github.com/google/nftables"
 	"github.com/google/nftables/expr"
@@ -3121,7 +3121,7 @@ func NewBOGONManager(cfg *config.SecurityConfig, conn *nftables.Conn, table *nft
 func NewNFTManager(cfg *config.Config) *NFTManager {
 	conn := &nftables.Conn{}
 	table := &nftables.Table{
-		Name:   "qfw",
+		Name:   "qff",
 		Family: nftables.TableFamilyINet,
 	}
 
@@ -3800,8 +3800,8 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/logger"
+	"qff/internal/config"
+	"qff/internal/logger"
 
 	"github.com/google/nftables"
 )
@@ -4243,8 +4243,8 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/logger"
+	"qff/internal/config"
+	"qff/internal/logger"
 )
 
 type EnhancedGeoIPManager struct {
@@ -4655,8 +4655,8 @@ import (
 	"time"
 
 	"github.com/oschwald/geoip2-golang"
-	"qfw/internal/config"
-	"qfw/internal/logger"
+	"qff/internal/config"
+	"qff/internal/logger"
 )
 
 type GeoIPManager struct {
@@ -4822,7 +4822,7 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/logger"
+	"qff/internal/logger"
 )
 
 const (
@@ -5101,7 +5101,7 @@ func (m *MaxMindDownloader) downloadWithRetry(ctx context.Context, edition strin
 	}
 
 	// Add headers
-	req.Header.Set("User-Agent", "QFW-GeoIP-Downloader/1.0")
+	req.Header.Set("User-Agent", "QFF-GeoIP-Downloader/1.0")
 	req.Header.Set("Accept", "application/octet-stream")
 
 	// Make request
@@ -5366,7 +5366,7 @@ func (m *MaxMindDownloader) generateDBPath(edition string) string {
 	}
 
 	// Use default path
-	return filepath.Join("/var/lib/qfw/geoip", edition+MmdbSuffix)
+	return filepath.Join("/var/lib/qff/geoip", edition+MmdbSuffix)
 }
 
 func (m *MaxMindDownloader) validateEdition(edition string) error {
@@ -5531,8 +5531,8 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/logger"
+	"qff/internal/config"
+	"qff/internal/logger"
 )
 
 const (
@@ -5691,7 +5691,7 @@ func (b *ExternalBlocklistManager) updateBlocklist(ctx context.Context, name str
 		return
 	}
 
-	req.Header.Set("User-Agent", "QFW-IPS/1.0")
+	req.Header.Set("User-Agent", "QFF-IPS/1.0")
 	req.Header.Set("Accept", "text/plain")
 
 	resp, err := b.client.Do(req)
@@ -5902,8 +5902,8 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/logger"
+	"qff/internal/config"
+	"qff/internal/logger"
 )
 
 type FileSystemMonitor struct {
@@ -6147,11 +6147,11 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/firewall"
-	"qfw/internal/geoip"
-	"qfw/internal/logger"
-	"qfw/internal/notify"
+	"qff/internal/config"
+	"qff/internal/firewall"
+	"qff/internal/geoip"
+	"qff/internal/logger"
+	"qff/internal/notify"
 )
 
 type IPSManager struct {
@@ -6851,8 +6851,8 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/logger"
+	"qff/internal/config"
+	"qff/internal/logger"
 )
 
 type PortScanDetector struct {
@@ -7103,8 +7103,8 @@ import (
 	"syscall"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/logger"
+	"qff/internal/config"
+	"qff/internal/logger"
 )
 
 type ProcessMonitor struct {
@@ -7544,7 +7544,7 @@ func New() *Logger {
 	promLogger := &PrometheusLogger{
 		logCounter: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Name: "qfw_log_entries_total",
+				Name: "qff_log_entries_total",
 				Help: "Total number of log entries by level",
 			},
 			[]string{"level", "component"},
@@ -7639,9 +7639,9 @@ import (
 	"syscall"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/logger"
-	"qfw/internal/notify"
+	"qff/internal/config"
+	"qff/internal/logger"
+	"qff/internal/notify"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -7678,19 +7678,19 @@ func NewSystemMonitor(cfg *config.MonitorConfig, notifier *notify.Notifier) (*Sy
 
 	metrics := &MonitorMetrics{
 		cpuUsage: prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: "qfw_cpu_usage_percent",
+			Name: "qff_cpu_usage_percent",
 			Help: "Current CPU usage percentage",
 		}),
 		memoryUsage: prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: "qfw_memory_usage_percent",
+			Name: "qff_memory_usage_percent",
 			Help: "Current memory usage percentage",
 		}),
 		diskUsage: prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: "qfw_disk_usage_percent",
+			Name: "qff_disk_usage_percent",
 			Help: "Current disk usage percentage",
 		}),
 		connections: prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: "qfw_active_connections",
+			Name: "qff_active_connections",
 			Help: "Number of active connections",
 		}),
 	}
@@ -7969,8 +7969,8 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/logger"
+	"qff/internal/config"
+	"qff/internal/logger"
 )
 
 const (
@@ -8253,7 +8253,7 @@ func getDefaultConfig() *Config {
 
 func getDefaultTemplateConfig() *TemplateConfig {
 	return &TemplateConfig{
-		EmailSubject:    "QFW Alert: {{.Alert.Title}}",
+		EmailSubject:    "QFF Alert: {{.Alert.Title}}",
 		EmailBody:       defaultEmailTemplate,
 		WebhookPayload:  defaultWebhookTemplate,
 		SlackPayload:    defaultSlackTemplate,
@@ -8290,7 +8290,7 @@ Tags: {{join .Alert.Tags ", "}}
 {{end}}
 
 --
-QFW Notification System
+QFF Notification System
 `
 
 const defaultWebhookTemplate = `{
@@ -8312,7 +8312,7 @@ const defaultWebhookTemplate = `{
 }`
 
 const defaultSlackTemplate = `{
-  "text": "QFW Alert: {{.Alert.Title}}",
+  "text": "QFF Alert: {{.Alert.Title}}",
   "attachments": [
     {
       "color": "{{if eq .Alert.Level "critical"}}danger{{else if eq .Alert.Level "error"}}warning{{else}}good{{end}}",
@@ -8538,7 +8538,7 @@ func (n *Notifier) sendWebhookRequest(payload []byte, webhook *WebhookConfig) er
 
 	// Set headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "QFW-Notifier/1.0")
+	req.Header.Set("User-Agent", "QFF-Notifier/1.0")
 
 	// Add custom headers
 	for key, value := range webhook.Headers {
@@ -8550,7 +8550,7 @@ func (n *Notifier) sendWebhookRequest(payload []byte, webhook *WebhookConfig) er
 		signature := n.generateSignature(payload, webhook.Secret)
 		headerName := webhook.SignatureHeader
 		if headerName == "" {
-			headerName = "X-QFW-Signature"
+			headerName = "X-QFF-Signature"
 		}
 		req.Header.Set(headerName, signature)
 	}
@@ -8594,7 +8594,7 @@ func (n *Notifier) renderEmailTemplate(alert *Alert) (string, string, error) {
 	var subjectBuf bytes.Buffer
 	subjectTemplate := n.config.Templates.EmailSubject
 	if subjectTemplate == "" {
-		subjectTemplate = "QFW Alert: {{.Alert.Title}}"
+		subjectTemplate = "QFF Alert: {{.Alert.Title}}"
 	}
 
 	tmpl, err := template.New("subject").Funcs(funcMap).Parse(subjectTemplate)
@@ -8636,10 +8636,10 @@ func (n *Notifier) buildTemplateData(alert *Alert) map[string]interface{} {
 
 	return map[string]interface{}{
 		"Alert":       alert,
-		"Service":     "QFW",
+		"Service":     "QFF",
 		"Version":     "1.0.0",
 		"Hostname":    hostname,
-		"Environment": os.Getenv("QFW_ENV"),
+		"Environment": os.Getenv("QFF_ENV"),
 		"Timestamp":   time.Now(),
 	}
 }
@@ -8773,7 +8773,7 @@ func (rl *RateLimiter) Allow(key string) bool {
 
 // Utility functions
 func generateAlertID() string {
-	return fmt.Sprintf("qfw_%d", time.Now().UnixNano())
+	return fmt.Sprintf("qff_%d", time.Now().UnixNano())
 }
 
 func getLevelPriority(level string) int {
@@ -8864,7 +8864,7 @@ func (n *Notifier) TestNotification() error {
 		"timestamp": time.Now(),
 	}
 
-	return n.SendInfo("Test Notification", "This is a test notification from QFW", "system", data)
+	return n.SendInfo("Test Notification", "This is a test notification from QFF", "system", data)
 }
 
 // UpdateConfig updates the notification configuration
@@ -9143,8 +9143,8 @@ import (
 	"sync"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/logger"
+	"qff/internal/config"
+	"qff/internal/logger"
 
 	"github.com/google/nftables"
 )
@@ -9163,7 +9163,7 @@ const (
 	BOGONWhitelistSet = "bogon_whitelist"
 
 	// Cache settings
-	DefaultCacheDir = "/var/lib/qfw/bogon"
+	DefaultCacheDir = "/var/lib/qff/bogon"
 	CacheFileFormat = "bogon_%s_%s.cache"
 
 	// Well-known BOGON list URLs
@@ -9948,7 +9948,7 @@ func (b *BOGONManager) downloadBogonList(source BOGONSource) ([]net.IPNet, error
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("User-Agent", "QFW-BOGON-Manager/1.0")
+	req.Header.Set("User-Agent", "QFF-BOGON-Manager/1.0")
 
 	resp, err := b.client.Do(req)
 	if err != nil {
@@ -10089,7 +10089,7 @@ func (b *BOGONManager) updateNFTablesSet(setName string, networks []net.IPNet) e
 
 	return nil
 }
-# QFW - qFibre Firewall Manager Configuration
+# QFF - qFibre Firewall Manager Configuration
 # Complete configuration file with all available options
 
 # ==============================================================================
@@ -10261,9 +10261,9 @@ disk_threshold=85.0
 
 [geoip]
 # GeoIP database configuration
-mmdb_path=/etc/qfw/GeoLite2-Country.mmdb
-country_block_file=/etc/qfw/countries.block
-country_allow_file=/etc/qfw/countries.allow
+mmdb_path=/etc/qff/GeoLite2-Country.mmdb
+country_block_file=/etc/qff/countries.block
+country_allow_file=/etc/qff/countries.allow
 maxmind_api_key=YOUR_MAXMIND_LICENSE_KEY
 auto_download=false
 
@@ -10353,18 +10353,18 @@ udp_out=53,123
 tcp_deny=23,135,139,445,1433,3389
 udp_deny=137,138,161,1434
 [Unit]
-Description=QFW - qFibre Firewall
-Documentation=https://github.com/qfiber/qfw
+Description=QFF - qFibre Firewall
+Documentation=https://github.com/qfiber/qff
 After=network-online.target
 Wants=network-online.target
 Requires=network-online.target
-AssertPathExists=/etc/qfw/qfw.conf
+AssertPathExists=/etc/qff/qff.conf
 
 [Service]
 Type=simple
 User=root
 Group=root
-ExecStart=/usr/local/bin/qfw -config /etc/qfw/qfw.conf
+ExecStart=/usr/local/bin/qff -config /etc/qff/qff.conf
 ExecReload=/bin/kill -HUP $MAINPID
 ExecStop=/bin/kill -TERM $MAINPID
 Restart=on-failure
@@ -10375,7 +10375,7 @@ StartLimitBurst=3
 # Logging
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=qfw
+SyslogIdentifier=qff
 SyslogFacility=local0
 LogLevelMax=info
 

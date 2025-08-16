@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	"qfw/internal/config"
-	"qfw/internal/logger"
-	"qfw/internal/notify"
+	"qff/internal/config"
+	"qff/internal/logger"
+	"qff/internal/notify"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -49,19 +49,19 @@ func NewSystemMonitor(cfg *config.MonitorConfig, notifier *notify.Notifier) (*Sy
 
 	metrics := &MonitorMetrics{
 		cpuUsage: prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: "qfw_cpu_usage_percent",
+			Name: "qff_cpu_usage_percent",
 			Help: "Current CPU usage percentage",
 		}),
 		memoryUsage: prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: "qfw_memory_usage_percent",
+			Name: "qff_memory_usage_percent",
 			Help: "Current memory usage percentage",
 		}),
 		diskUsage: prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: "qfw_disk_usage_percent",
+			Name: "qff_disk_usage_percent",
 			Help: "Current disk usage percentage",
 		}),
 		connections: prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: "qfw_active_connections",
+			Name: "qff_active_connections",
 			Help: "Number of active connections",
 		}),
 	}
