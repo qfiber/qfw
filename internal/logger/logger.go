@@ -47,8 +47,13 @@ func New() *Logger {
 
 	prometheus.MustRegister(promLogger.logCounter)
 
+	// Configure slog for journald with proper identifier
+	opts := &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}
+
 	return &Logger{
-		slog:       slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+		slog:       slog.New(slog.NewJSONHandler(os.Stdout, opts)),
 		prometheus: promLogger,
 	}
 }
@@ -69,6 +74,26 @@ func (l *Logger) Warn(component, msg string, fields ...interface{}) {
 	l.log("WARN", component, msg, fields...)
 }
 
+// Add firewall-specific logging methods
+func (l *Logger) LogFirewallBlock(action, direction, protocol string, port int, srcIP, dstIP string) {
+	l.Info("firewall", fmt.Sprintf("FIREWALL %s %s", action, direction),
+		"action", action,
+		"direction", direction,
+		"protocol", protocol,
+		"port", port,
+		"src_ip", srcIP,
+		"dst_ip", dstIP,
+		"rule_type", "port_rule")
+}
+
+func (l *Logger) LogIPBlock(action, reason string, ip string) {
+	l.Info("firewall", fmt.Sprintf("IP %s: %s", action, ip),
+		"action", action,
+		"ip", ip,
+		"reason", reason,
+		"rule_type", "ip_rule")
+}
+
 func (l *Logger) log(level, component, msg string, fields ...interface{}) {
 	entry := LogEntry{
 		Timestamp: time.Now(),
@@ -86,24 +111,19 @@ func (l *Logger) log(level, component, msg string, fields ...interface{}) {
 		}
 	}
 
-	// JSON output for journalctl
-	jsonData, _ := json.Marshal(entry)
-	fmt.Println(string(jsonData))
+	// Format for journald with qFiber Firewall identifier
+	fmt.Printf("qFiber Firewall[%d]: %s [%s] %s\n",
+		os.Getpid(), level, component, msg)
+
+	// Also output structured JSON for parsing
+	if len(fields) > 0 {
+		jsonData, _ := json.Marshal(entry.Fields)
+		fmt.Printf("qFiber Firewall[%d]: STRUCTURED: %s\n",
+			os.Getpid(), string(jsonData))
+	}
 
 	// Prometheus metrics
 	l.prometheus.logCounter.WithLabelValues(level, component).Inc()
-
-	// Standard slog
-	switch level {
-	case "INFO":
-		l.slog.Info(msg, "component", component)
-	case "ERROR":
-		l.slog.Error(msg, "component", component)
-	case "DEBUG":
-		l.slog.Debug(msg, "component", component)
-	case "WARN":
-		l.slog.Warn(msg, "component", component)
-	}
 }
 
 func Info(component, msg string, fields ...interface{}) {
@@ -120,4 +140,13 @@ func Debug(component, msg string, fields ...interface{}) {
 
 func Warn(component, msg string, fields ...interface{}) {
 	DefaultLogger.Warn(component, msg, fields...)
+}
+
+// Firewall-specific logging functions
+func LogFirewallBlock(action, direction, protocol string, port int, srcIP, dstIP string) {
+	DefaultLogger.LogFirewallBlock(action, direction, protocol, port, srcIP, dstIP)
+}
+
+func LogIPBlock(action, reason string, ip string) {
+	DefaultLogger.LogIPBlock(action, reason, ip)
 }

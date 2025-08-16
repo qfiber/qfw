@@ -18,7 +18,7 @@ import (
 const (
 	Version         = "1.0.0"
 	DefaultAPIBase  = "http://localhost:8080"
-	ServiceName     = "qfw"
+	ServiceName     = "qFiber Firewall"
 	DefaultTimeout  = 30 * time.Second
 	DefaultLogLines = 50
 )

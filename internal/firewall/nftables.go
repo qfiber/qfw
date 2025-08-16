@@ -2,9 +2,12 @@
 package firewall
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 	"os"
+	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -214,20 +217,24 @@ func (n *NFTManager) AddPortRule(port int, protocol string, direction string, ac
 		return fmt.Errorf("unsupported direction: %s", direction)
 	}
 
-	// Determine verdict
+	// Determine verdict and log prefix
 	var verdict expr.VerdictKind
+	var logPrefix string
 	switch strings.ToLower(action) {
 	case "accept", "allow":
 		verdict = expr.VerdictAccept
+		logPrefix = fmt.Sprintf("QFW-ACCEPT-%s-%d: ", strings.ToUpper(direction), port)
 	case "drop", "deny", "block":
 		verdict = expr.VerdictDrop
+		logPrefix = fmt.Sprintf("QFW-DROP-%s-%d: ", strings.ToUpper(direction), port)
 	case "reject":
 		verdict = expr.VerdictReturn
+		logPrefix = fmt.Sprintf("QFW-REJECT-%s-%d: ", strings.ToUpper(direction), port)
 	default:
 		return fmt.Errorf("unsupported action: %s", action)
 	}
 
-	// Create the rule
+	// Create the rule with logging
 	rule := &nftables.Rule{
 		Table: n.table,
 		Chain: chain,
@@ -236,6 +243,7 @@ func (n *NFTManager) AddPortRule(port int, protocol string, direction string, ac
 			&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{protocolNum}},
 			&expr.Payload{DestRegister: 1, Base: expr.PayloadBaseTransportHeader, Offset: 2, Len: 2},
 			&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{byte(port >> 8), byte(port)}},
+			&expr.Log{Data: []byte(logPrefix)},
 			&expr.Verdict{Kind: verdict},
 		},
 	}
@@ -263,7 +271,7 @@ func (n *NFTManager) AddPortRule(port int, protocol string, direction string, ac
 	}
 	n.rulesMutex.Unlock()
 
-	logger.Info("firewall", "Added port rule", "port", port, "protocol", protocol, "direction", direction, "action", action)
+	logger.Info("firewall", "Added port rule with logging", "port", port, "protocol", protocol, "direction", direction, "action", action)
 	return nil
 }
 
@@ -498,6 +506,7 @@ func (n *NFTManager) setupSets() error {
 
 func (n *NFTManager) setupRules() error {
 	inputChain := &nftables.Chain{Name: "input", Table: n.table}
+	outputChain := &nftables.Chain{Name: "output", Table: n.table}
 
 	// Allow loopback
 	n.conn.AddRule(&nftables.Rule{
@@ -510,24 +519,26 @@ func (n *NFTManager) setupRules() error {
 		},
 	})
 
-	// Whitelist rule
+	// Whitelist rule (with logging)
 	n.conn.AddRule(&nftables.Rule{
 		Table: n.table,
 		Chain: inputChain,
 		Exprs: []expr.Any{
 			&expr.Payload{DestRegister: 1, Base: expr.PayloadBaseNetworkHeader, Offset: 12, Len: 4},
 			&expr.Lookup{SourceRegister: 1, SetName: "whitelist_ips"},
+			&expr.Log{Data: []byte("QFW-ACCEPT-WHITELIST: ")},
 			&expr.Verdict{Kind: expr.VerdictAccept},
 		},
 	})
 
-	// Blacklist rule
+	// Blacklist rule (with logging)
 	n.conn.AddRule(&nftables.Rule{
 		Table: n.table,
 		Chain: inputChain,
 		Exprs: []expr.Any{
 			&expr.Payload{DestRegister: 1, Base: expr.PayloadBaseNetworkHeader, Offset: 12, Len: 4},
 			&expr.Lookup{SourceRegister: 1, SetName: "blacklist_ips"},
+			&expr.Log{Data: []byte("QFW-DROP-BLACKLIST: ")},
 			&expr.Verdict{Kind: expr.VerdictDrop},
 		},
 	})
@@ -547,6 +558,28 @@ func (n *NFTManager) setupRules() error {
 		return err
 	}
 
+	// Default drop rule with logging for INPUT
+	if n.config.Firewall.DefaultPolicy == "drop" {
+		n.conn.AddRule(&nftables.Rule{
+			Table: n.table,
+			Chain: inputChain,
+			Exprs: []expr.Any{
+				&expr.Log{Data: []byte("QFW-DROP-INPUT: ")},
+				&expr.Verdict{Kind: expr.VerdictDrop},
+			},
+		})
+	}
+
+	// Default drop rule with logging for OUTPUT
+	n.conn.AddRule(&nftables.Rule{
+		Table: n.table,
+		Chain: outputChain,
+		Exprs: []expr.Any{
+			&expr.Log{Data: []byte("QFW-DROP-OUTPUT: ")},
+			&expr.Verdict{Kind: expr.VerdictDrop},
+		},
+	})
+
 	return nil
 }
 
@@ -564,6 +597,7 @@ func (n *NFTManager) setupConfigPortRules() error {
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{6}}, // TCP protocol
 				&expr.Payload{DestRegister: 1, Base: expr.PayloadBaseTransportHeader, Offset: 2, Len: 2},
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{byte(port >> 8), byte(port)}},
+				&expr.Log{Data: []byte(fmt.Sprintf("QFW-ACCEPT-INPUT-%d: ", port))},
 				&expr.Verdict{Kind: expr.VerdictAccept},
 			},
 		})
@@ -580,6 +614,7 @@ func (n *NFTManager) setupConfigPortRules() error {
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{17}}, // UDP protocol
 				&expr.Payload{DestRegister: 1, Base: expr.PayloadBaseTransportHeader, Offset: 2, Len: 2},
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{byte(port >> 8), byte(port)}},
+				&expr.Log{Data: []byte(fmt.Sprintf("QFW-ACCEPT-INPUT-%d: ", port))},
 				&expr.Verdict{Kind: expr.VerdictAccept},
 			},
 		})
@@ -596,6 +631,7 @@ func (n *NFTManager) setupConfigPortRules() error {
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{6}}, // TCP protocol
 				&expr.Payload{DestRegister: 1, Base: expr.PayloadBaseTransportHeader, Offset: 2, Len: 2},
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{byte(port >> 8), byte(port)}},
+				&expr.Log{Data: []byte(fmt.Sprintf("QFW-ACCEPT-OUTPUT-%d: ", port))},
 				&expr.Verdict{Kind: expr.VerdictAccept},
 			},
 		})
@@ -612,6 +648,7 @@ func (n *NFTManager) setupConfigPortRules() error {
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{17}}, // UDP protocol
 				&expr.Payload{DestRegister: 1, Base: expr.PayloadBaseTransportHeader, Offset: 2, Len: 2},
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{byte(port >> 8), byte(port)}},
+				&expr.Log{Data: []byte(fmt.Sprintf("QFW-ACCEPT-OUTPUT-%d: ", port))},
 				&expr.Verdict{Kind: expr.VerdictAccept},
 			},
 		})
@@ -628,6 +665,7 @@ func (n *NFTManager) setupConfigPortRules() error {
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{6}}, // TCP protocol
 				&expr.Payload{DestRegister: 1, Base: expr.PayloadBaseTransportHeader, Offset: 2, Len: 2},
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{byte(port >> 8), byte(port)}},
+				&expr.Log{Data: []byte(fmt.Sprintf("QFW-DROP-INPUT-%d: ", port))},
 				&expr.Verdict{Kind: expr.VerdictDrop},
 			},
 		})
@@ -644,6 +682,7 @@ func (n *NFTManager) setupConfigPortRules() error {
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{17}}, // UDP protocol
 				&expr.Payload{DestRegister: 1, Base: expr.PayloadBaseTransportHeader, Offset: 2, Len: 2},
 				&expr.Cmp{Op: expr.CmpOpEq, Register: 1, Data: []byte{byte(port >> 8), byte(port)}},
+				&expr.Log{Data: []byte(fmt.Sprintf("QFW-DROP-INPUT-%d: ", port))},
 				&expr.Verdict{Kind: expr.VerdictDrop},
 			},
 		})
@@ -683,33 +722,163 @@ func (n *NFTManager) RemoveBlacklistIP(ip net.IP) error {
 }
 
 func (n *NFTManager) WhitelistCurrentUser() error {
-	// Get the IP of the user who started the application
+	var detectedIPs []net.IP
+
+	// Method 1: SSH_CLIENT environment variable
 	sshClient := os.Getenv("SSH_CLIENT")
 	if sshClient != "" {
 		parts := strings.Fields(sshClient)
 		if len(parts) > 0 {
-			ip := net.ParseIP(parts[0])
-			if ip != nil && !ip.IsLoopback() {
-				logger.Info("firewall", "Auto-whitelisting SSH client IP", "ip", ip.String())
-				return n.AddWhitelistIP(ip)
+			if ip := net.ParseIP(parts[0]); ip != nil && !ip.IsLoopback() {
+				detectedIPs = append(detectedIPs, ip)
+				logger.Info("firewall", "Detected SSH client IP from SSH_CLIENT", "ip", ip.String())
 			}
 		}
 	}
 
+	// Method 2: SSH_CONNECTION environment variable
 	sshConn := os.Getenv("SSH_CONNECTION")
 	if sshConn != "" {
 		parts := strings.Fields(sshConn)
 		if len(parts) >= 4 {
-			ip := net.ParseIP(parts[0])
-			if ip != nil && !ip.IsLoopback() {
-				logger.Info("firewall", "Auto-whitelisting SSH connection IP", "ip", ip.String())
-				return n.AddWhitelistIP(ip)
+			if ip := net.ParseIP(parts[0]); ip != nil && !ip.IsLoopback() {
+				// Check if we already have this IP
+				found := false
+				for _, existingIP := range detectedIPs {
+					if existingIP.Equal(ip) {
+						found = true
+						break
+					}
+				}
+				if !found {
+					detectedIPs = append(detectedIPs, ip)
+					logger.Info("firewall", "Detected SSH client IP from SSH_CONNECTION", "ip", ip.String())
+				}
 			}
 		}
 	}
 
-	logger.Info("firewall", "No remote connection detected, skipping auto-whitelist")
+	// Method 3: Parse /proc/net/tcp for established SSH connections
+	if len(detectedIPs) == 0 {
+		if sshIPs := n.getSSHConnections(); len(sshIPs) > 0 {
+			detectedIPs = append(detectedIPs, sshIPs...)
+			logger.Info("firewall", "Detected SSH connections from /proc/net/tcp", "count", len(sshIPs))
+		}
+	}
+
+	// Method 4: Parse 'who' command output for SSH sessions
+	if len(detectedIPs) == 0 {
+		if whoIPs := n.getWhoSSHConnections(); len(whoIPs) > 0 {
+			detectedIPs = append(detectedIPs, whoIPs...)
+			logger.Info("firewall", "Detected SSH connections from 'who' command", "count", len(whoIPs))
+		}
+	}
+
+	// Whitelist all detected IPs
+	if len(detectedIPs) > 0 {
+		for _, ip := range detectedIPs {
+			if err := n.AddWhitelistIP(ip); err != nil {
+				logger.Error("firewall", "Failed to whitelist detected IP", "ip", ip.String(), "error", err.Error())
+			} else {
+				logger.Info("firewall", "Auto-whitelisted SSH client IP", "ip", ip.String())
+			}
+		}
+		return nil
+	}
+
+	logger.Info("firewall", "No remote SSH connections detected, skipping auto-whitelist")
 	return nil
+}
+
+// getSSHConnections parses /proc/net/tcp for SSH connections (port 22)
+func (n *NFTManager) getSSHConnections() []net.IP {
+	var ips []net.IP
+
+	file, err := os.Open("/proc/net/tcp")
+	if err != nil {
+		return ips
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	scanner.Scan() // Skip header
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		fields := strings.Fields(line)
+		if len(fields) < 4 {
+			continue
+		}
+
+		// Parse local address (format: IP:PORT in hex)
+		localAddr := fields[1]
+		if strings.HasSuffix(localAddr, ":0016") { // 0016 = port 22 in hex
+			// Parse remote address
+			remoteAddr := fields[2]
+			if remoteIP := n.parseHexIP(remoteAddr); remoteIP != nil && !remoteIP.IsLoopback() {
+				// Check if connection is established (state 01)
+				state := fields[3]
+				if state == "01" {
+					ips = append(ips, remoteIP)
+				}
+			}
+		}
+	}
+
+	return ips
+}
+
+// getWhoSSHConnections uses the 'who' command to find SSH sessions
+func (n *NFTManager) getWhoSSHConnections() []net.IP {
+	var ips []net.IP
+
+	cmd := exec.Command("who")
+	output, err := cmd.Output()
+	if err != nil {
+		return ips
+	}
+
+	lines := strings.Split(string(output), "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "pts/") && strings.Contains(line, "(") {
+			// Extract IP from parentheses: user pts/0 2025-08-16 12:00 (192.168.1.100)
+			start := strings.LastIndex(line, "(")
+			end := strings.LastIndex(line, ")")
+			if start != -1 && end != -1 && end > start {
+				ipStr := line[start+1 : end]
+				if ip := net.ParseIP(ipStr); ip != nil && !ip.IsLoopback() {
+					ips = append(ips, ip)
+				}
+			}
+		}
+	}
+
+	return ips
+}
+
+// parseHexIP converts hex format IP:PORT to net.IP
+func (n *NFTManager) parseHexIP(hexAddr string) net.IP {
+	parts := strings.Split(hexAddr, ":")
+	if len(parts) != 2 {
+		return nil
+	}
+
+	hexIP := parts[0]
+	if len(hexIP) != 8 {
+		return nil
+	}
+
+	// Convert hex to IP bytes (little endian)
+	var ipBytes [4]byte
+	for i := 0; i < 4; i++ {
+		byteVal, err := strconv.ParseUint(hexIP[i*2:(i+1)*2], 16, 8)
+		if err != nil {
+			return nil
+		}
+		ipBytes[3-i] = byte(byteVal) // Reverse byte order
+	}
+
+	return net.IPv4(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3])
 }
 
 func (n *NFTManager) Reload() error {
