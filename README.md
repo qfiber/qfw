@@ -1,5 +1,6 @@
 # QFW - qFibre Firewall Manager
 
+<<<<<<< HEAD
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Go Version](https://img.shields.io/badge/Go-1.19+-00ADD8?style=flat&logo=go)](https://golang.org/)
 [![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey)](https://www.linux.org/)
@@ -329,3 +330,69 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 ---
 
 **QFW** - Enterprise-grade security for the modern web. Built with Go, powered by intelligence.
+=======
+Modern CSF replacement built with Go and nftables, featuring REST API, live metrics, and comprehensive security filtering.
+
+## Features
+
+- **nftables-based architecture** - Modern netfilter backend
+- **REST API** - Full automation support
+- **Live metrics & alerts** - Prometheus integration
+- **Advanced filtering** - SYN flood, rate limits, BOGON/Martian filtering
+- **GeoIP blocking** - Country-based access control
+- **Multiple notifications** - Email, webhooks (Slack, Discord, n8n)
+- **Test mode** - Safe configuration testing with auto-revert
+- **O(1) IP lookups** - Efficient nftables sets
+
+## Quick Start
+
+```bash
+# Build and install
+make install
+
+# Enable and start service
+qfw-cli enable
+
+# Check status
+qfw-cli status
+
+# View metrics
+qfw-cli metrics
+
+# Add IP to whitelist
+qfw-cli whitelist add 192.168.1.100
+
+# View logs
+qfw-cli logs 100
+```
+
+## Configuration
+
+Edit `/etc/qfw/qfw.conf` with your settings. See example configuration for all options.
+
+## API Usage
+
+```bash
+# Get status
+curl http://localhost:8080/status
+
+# Add IP to blacklist
+curl -X POST "http://localhost:8080/blacklist?ip=1.2.3.4"
+
+# Reload configuration
+curl -X POST http://localhost:8080/reload
+
+# Prometheus metrics
+curl http://localhost:8080/prometheus
+```
+
+## Requirements
+
+- Linux with nftables support
+- Go 1.21+ (for building)
+- Root privileges (for nftables management)
+
+## License
+
+MIT License
+>>>>>>> b95c977 (Initial commit)
