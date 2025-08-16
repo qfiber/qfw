@@ -1,6 +1,5 @@
 # QFW - qFibre Firewall Manager
 
-<<<<<<< HEAD
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Go Version](https://img.shields.io/badge/Go-1.19+-00ADD8?style=flat&logo=go)](https://golang.org/)
 [![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey)](https://www.linux.org/)
@@ -391,8 +390,4 @@ curl http://localhost:8080/prometheus
 - Linux with nftables support
 - Go 1.21+ (for building)
 - Root privileges (for nftables management)
-
-## License
-
-MIT License
 >>>>>>> b95c977 (Initial commit)
